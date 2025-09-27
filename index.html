@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kasir Offline - Camping Store Jaya</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f6f8fa;color:#333}
+header{background:#0f62fe;color:#fff;padding:12px;text-align:center}
+.container{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:#fff;padding:12px;margin-bottom:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+h2{margin-top:0}
+input,select,textarea{padding:6px;border:1px solid #ddd;border-radius:6px;width:100%;margin:4px 0}
+button{padding:8px 12px;background:#0f62fe;color:#fff;border:none;border-radius:6px;cursor:pointer}
+button.ghost{background:#fff;color:#0f62fe;border:1px solid #0f62fe}
+.flex{display:flex;gap:12px;align-items:center}
+.small{font-size:13px;color:#555}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏕️ Kasir Sewa - Camping Store Jaya</h1>
+</header>
+
+<div class="container">
+  <!-- LOGIN -->
+  <div id="loginCard" class="card">
+    <h2>Login</h2>
+    <p>Masukkan kode akses:</p>
+    <input type="password" id="loginCode" placeholder="Kode">
+    <button onclick="login()">Masuk</button>
+    <p class="small">Gunakan kode yang sudah diberikan admin.</p>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden">
+    <div class="card">
+      <div class="flex" style="justify-content:space-between">
+        <h2>Dashboard</h2>
+        <button class="ghost" onclick="logout()">Logout</button>
+      </div>
+      <canvas id="chart" height="100"></canvas>
+      <div id="summary" class="small"></div>
+    </div>
+
+    <div class="card">
+      <h2>Katalog Barang</h2>
+      <div class="flex">
+        <input id="itemName" placeholder="Nama barang">
+        <input id="itemPrice" type="number" placeholder="Harga/hari">
+        <button onclick="addItem()">Tambah</button>
+      </div>
+      <ul id="catalog"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Keranjang</h2>
+      <ul id="cart"></ul>
+      <div id="total" class="small"></div>
+      <h3>Data Penyewa</h3>
+      <input id="renterName" placeholder="Nama Penyewa">
+      <input id="renterPhone" placeholder="No WA Penyewa">
+      <div class="flex">
+        <input id="startDate" type="date">
+        <input id="endDate" type="date">
+      </div>
+      <textarea id="note" placeholder="Catatan"></textarea>
+      <button onclick="checkout()">Checkout</button>
+    </div>
+
+    <div class="card">
+      <h2>Riwayat Transaksi</h2>
+      <input id="searchStruk" placeholder="Cari no struk">
+      <button onclick="searchStruk()">Cari</button>
+      <ul id="history"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======== LOGIN ======== */
+const users = {
+  "1234": {name:"Admin"},
+  "5678": {name:"Kasir A"}
+};
+let currentUser=null;
+function login(){
+  const code=document.getElementById("loginCode").value;
+  if(users[code]){
+    currentUser=users[code];
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    loadData();
+  }else alert("Kode salah!");
+}
+function logout(){
+  currentUser=null;
+  document.getElementById("loginCard").classList.remove("hidden");
+  document.getElementById("app").classList.add("hidden");
+}
+
+/* ======== DATA ======== */
+let catalog=JSON.parse(localStorage.getItem("catalog")||"[]");
+let cart=[];
+let history=JSON.parse(localStorage.getItem("history")||"[]");
+
+function saveData(){
+  localStorage.setItem("catalog",JSON.stringify(catalog));
+  localStorage.setItem("history",JSON.stringify(history));
+  renderCatalog();renderCart();renderHistory();renderSummary();
+}
+
+/* ======== KATALOG ======== */
+function addItem(){
+  const name=document.getElementById("itemName").value;
+  const price=parseInt(document.getElementById("itemPrice").value);
+  if(!name||!price)return;
+  catalog.push({name,price});
+  document.getElementById("itemName").value="";
+  document.getElementById("itemPrice").value="";
+  saveData();
+}
+function renderCatalog(){
+  const ul=document.getElementById("catalog");ul.innerHTML="";
+  catalog.forEach((it,i)=>{
+    const li=document.createElement("li");
+    li.textContent=it.name+" - Rp"+it.price;
+    const btn=document.createElement("button");btn.textContent="Tambah ke keranjang";
+    btn.onclick=()=>{cart.push({...it,qty:1});renderCart();};
+    li.appendChild(btn);ul.appendChild(li);
+  });
+}
+
+/* ======== KERANJANG ======== */
+function renderCart(){
+  const ul=document.getElementById("cart");ul.innerHTML="";
+  let total=0;
+  cart.forEach((it,i)=>{
+    total+=it.price*it.qty;
+    const li=document.createElement("li");
+    li.textContent=`${it.name} x${it.qty} - Rp${it.price*it.qty}`;
+    ul.appendChild(li);
+  });
+  document.getElementById("total").textContent="Subtotal: Rp"+total;
+}
+
+/* ======== CHECKOUT ======== */
+function daysBetween(s,e){
+  const d1=new Date(s), d2=new Date(e);
+  const diff=(d2-d1)/(1000*60*60*24);
+  return Math.max(1,Math.round(diff));
+}
+function checkout(){
+  if(!cart.length)return alert("Keranjang kosong!");
+  const name=document.getElementById("renterName").value;
+  const phone=document.getElementById("renterPhone").value;
+  const start=document.getElementById("startDate").value;
+  const end=document.getElementById("endDate").value;
+  if(!name||!phone||!start||!end)return alert("Lengkapi data penyewa!");
+  const lama=daysBetween(start,end);
+  let total=0;
+  cart.forEach(it=>total+=it.price*it.qty*lama);
+  const today=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const no=today+"-"+String(history.filter(h=>h.no.startsWith(today)).length+1).padStart(3,"0");
+  const struk=`No Struk: ${no}\nNama: ${name}\nWA: ${phone}\nSewa: ${start} → ${end} (${lama} hari)\n---\n${cart.map(it=>it.name+" x"+it.qty+" = Rp"+(it.price*it.qty*lama)).join("\n")}\nTotal: Rp${total}`;
+  history.push({no,text:struk,total,date:today});
+  cart=[];renderCart();saveData();
+  alert("Transaksi tersimpan!\n"+struk);
+  window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(struk),"_blank");
+}
+
+/* ======== RIWAYAT ======== */
+function renderHistory(){
+  const ul=document.getElementById("history");ul.innerHTML="";
+  history.slice().reverse().forEach(h=>{
+    const li=document.createElement("li");
+    li.textContent=h.no+" - Rp"+h.total;
+    const btn=document.createElement("button");btn.textContent="Lihat";
+    btn.onclick=()=>alert(h.text);
+    li.appendChild(btn);ul.appendChild(li);
+  });
+}
+function searchStruk(){
+  const q=document.getElementById("searchStruk").value;
+  const f=history.find(h=>h.no==q);
+  if(f)alert(f.text);else alert("Struk tidak ditemukan");
+}
+
+/* ======== DASHBOARD ======== */
+function renderSummary(){
+  const now=new Date();
+  const today=now.toISOString().slice(0,10).replace(/-/g,"");
+  const month=now.toISOString().slice(0,7).replace(/-/g,"");
+  const hari=history.filter(h=>h.date==today).reduce((s,h)=>s+h.total,0);
+  const bulanan=history.filter(h=>h.date.startsWith(month)).reduce((s,h)=>s+h.total,0);
+  document.getElementById("summary").textContent=`Hari ini: Rp${hari} | Bulan ini: Rp${bulanan}`;
+  // chart
+  const ctx=document.getElementById("chart");
+  const daysCount={};
+  history.forEach(h=>{daysCount[h.date]=(daysCount[h.date]||0)+h.total;});
+  new Chart(ctx,{type:"bar",data:{labels:Object.keys(daysCount),datasets:[{label:"Omzet",data:Object.values(daysCount),backgroundColor:"#0f62fe"}]}});
+}
+
+/* INIT */
+function loadData(){renderCatalog();renderCart();renderHistory();renderSummary();}
+</script>
+</body>
+</html>
+
