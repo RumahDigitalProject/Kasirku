@@ -161,17 +161,19 @@ async function loadUcapan() {
     const data = await res.json();
     const list = document.getElementById("list");
 
+    // urutkan agar terbaru di atas
+    const sorted = data.slice().reverse();
+
     // kalau jumlah data sama dengan sebelumnya, berarti belum ada tambahan
     if (data.length === lastCount) return;
 
-    // ambil ucapan baru
-    const newItems = data.slice(lastCount);
+    // tambahkan hanya ucapan baru di atas
+    const newItems = sorted.slice(0, sorted.length - lastCount);
 
     // update jumlah terakhir
     lastCount = data.length;
 
-    // tampilkan hanya tambahan baru (dari bawah)
-    newItems.reverse().forEach(row => {
+    newItems.forEach(row => {
       const item = document.createElement("div");
       item.classList.add("ucapan-item");
       item.innerHTML = `
@@ -191,6 +193,3 @@ async function loadUcapan() {
 loadUcapan();
 setInterval(loadUcapan, 8000); // cek setiap 8 detik
 </script>
-
-</body>
-</html>
