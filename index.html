@@ -73,6 +73,28 @@
     from {opacity: 0; transform: translateY(10px);}
     to {opacity: 1; transform: translateY(0);}
   }
+
+  /* === Notifikasi === */
+  #notif {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #f5c542;
+    color: #3e1013;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.4s ease;
+    font-weight: 600;
+    z-index: 9999;
+  }
+
+  #notif.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 </style>
 </head>
 <body>
@@ -96,9 +118,19 @@
     </div>
   </div>
 
+  <div id="notif">🎉 Terima kasih atas ucapannya!</div>
+
 <script>
 const scriptURL = "https://script.google.com/macros/s/AKfycbwN9aoSK3ktMZ3hp6hHsUSwdAo2flxBy1Umk6vM75JXgGcs1cX4RZlRzw1gcp3jZI-q/exec"; // 🔥 Ganti dengan URL Web App dari Google Apps Script
 let lastCount = 0; // jumlah ucapan terakhir
+
+// === Fungsi Notifikasi ===
+function showNotif(text = "🎉 Terima kasih atas ucapannya!") {
+  const notif = document.getElementById("notif");
+  notif.textContent = text;
+  notif.classList.add("show");
+  setTimeout(() => notif.classList.remove("show"), 3000);
+}
 
 // === KIRIM DATA KE GOOGLE SHEET ===
 document.getElementById("rsvpForm").addEventListener("submit", async (e) => {
@@ -118,6 +150,7 @@ document.getElementById("rsvpForm").addEventListener("submit", async (e) => {
 
   await fetch(scriptURL, { method: "POST", body: formData });
   document.getElementById("rsvpForm").reset();
+  showNotif(); // tampilkan notifikasi
   loadUcapan(); // langsung muat ulang setelah kirim
 });
 
@@ -146,7 +179,7 @@ async function loadUcapan() {
         <p>${row.ucapan}</p>
         <small>${row.waktu}</small>
       `;
-      list.prepend(item); // tambahkan ke atas
+      list.prepend(item);
     });
 
   } catch (err) {
