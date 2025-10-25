@@ -151,26 +151,41 @@ document.getElementById("rsvpForm").addEventListener("submit", async (e) => {
   await fetch(scriptURL, { method: "POST", body: formData });
   document.getElementById("rsvpForm").reset();
   showNotif(); // tampilkan notifikasi
-  loadUcapan(); // langsung muat ulang setelah kirim
+  loadUcapan(true); // reload penuh setelah kirim
 });
 
 // === AMBIL DATA DARI GOOGLE SHEET TANPA FLICKER ===
-async function loadUcapan() {
+async function loadUcapan(forceFullReload = false) {
   try {
     const res = await fetch(scriptURL + "?read");
     const data = await res.json();
     const list = document.getElementById("list");
 
-    // urutkan agar terbaru di atas
-    const sorted = data.slice().reverse();
+    // Urutkan agar terbaru di atas
+    const reversed = data.slice().reverse();
 
-    // kalau jumlah data sama dengan sebelumnya, berarti belum ada tambahan
+    // Jika ini pertama kali atau full reload, tampilkan semuanya (terbaru di atas)
+    if (forceFullReload || lastCount === 0) {
+      list.innerHTML = ""; // kosongkan dulu hanya saat awal / reload penuh
+      reversed.forEach(row => {
+        const item = document.createElement("div");
+        item.classList.add("ucapan-item");
+        item.innerHTML = `
+          <strong>${row.nama}</strong> (${row.kehadiran})<br>
+          <p>${row.ucapan}</p>
+          <small>${row.waktu}</small>
+        `;
+        list.appendChild(item);
+      });
+      lastCount = data.length;
+      return;
+    }
+
+    // Kalau jumlah data sama → tidak ada tambahan
     if (data.length === lastCount) return;
 
-    // tambahkan hanya ucapan baru di atas
-    const newItems = sorted.slice(0, sorted.length - lastCount);
-
-    // update jumlah terakhir
+    // Ambil tambahan ucapan baru
+    const newItems = reversed.slice(0, data.length - lastCount);
     lastCount = data.length;
 
     newItems.forEach(row => {
@@ -181,7 +196,7 @@ async function loadUcapan() {
         <p>${row.ucapan}</p>
         <small>${row.waktu}</small>
       `;
-      list.prepend(item);
+      list.prepend(item); // ucapan baru di paling atas
     });
 
   } catch (err) {
@@ -189,7 +204,8 @@ async function loadUcapan() {
   }
 }
 
-// jalankan pertama kali
-loadUcapan();
-setInterval(loadUcapan, 8000); // cek setiap 8 detik
+// Jalankan pertama kali
+loadUcapan(true);
+setInterval(loadUcapan, 8000); // cek tiap 8 detik
 </script>
+
