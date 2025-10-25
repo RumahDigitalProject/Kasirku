@@ -677,21 +677,11 @@
 }
 
 
+  /* ====== GAYA KHUSUS RSVP ====== */
+  #rsvp {
+    background: linear-gradient(135deg, #7b1f26, #3e1013);
+  }
 
-/* === BACKGROUND UTAMA SEPERTI .acara (versi gelap) === */
-#rsvp {
-  position: relative;
-  background: #4e1419 url('kembang.webp') no-repeat center center;
-  background-size: cover;
-  background-attachment: fixed;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 80px 20px;
-  text-align: center;
-  z-index: 1;
-}
   .rsvp-container {
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
@@ -702,7 +692,7 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
 
-  input, select, textarea, button {
+  #rsvp input, #rsvp select, #rsvp textarea, #rsvp button {
     width: 100%;
     padding: 12px;
     margin-top: 10px;
@@ -711,12 +701,12 @@
     font-size: 16px;
   }
 
-  input, textarea, select {
+  #rsvp input, #rsvp textarea, #rsvp select {
     background: rgba(255,255,255,0.9);
     color: #333;
   }
 
-  button {
+  #rsvp button {
     background: #f5c542;
     color: #3e1013;
     font-weight: 600;
@@ -724,7 +714,7 @@
     transition: 0.3s;
   }
 
-  button:hover {
+  #rsvp button:hover {
     background: #ffe066;
     transform: scale(1.03);
   }
@@ -773,6 +763,7 @@
     opacity: 1;
     transform: translateY(0);
   }
+
 
 /* === UCAPAN TERIMA KASIH === */
 #ucapan {
@@ -1086,9 +1077,9 @@
 </div>
 </section>
 
-<!-- === RSVP + WISHES DALAM 1 BACKGROUND === -->
-<section id="rsvp">
-    <div class="rsvp-container">
+<!-- === SECTION RSVP & UCAPAN === -->
+<section id="rsvp" class="section" style="padding:60px 20px; text-align:center; color:#fff;">
+  <div class="rsvp-container">
     <h2>💌 RSVP & Ucapan</h2>
     <form id="rsvpForm">
       <input type="text" id="nama" placeholder="Nama Anda" required>
@@ -1103,12 +1094,14 @@
 
     <div class="ucapan-list" id="ucapanList">
       <h3 style="margin-top:30px;">Ucapan & Kehadiran</h3>
-      <div id="list"></div>
+      <div id="list">
+        <p style="opacity:0.8; text-align:center;">Belum ada ucapan 😇</p>
+      </div>
     </div>
   </div>
+</section>
 
-  <div id="notif">🎉 Terima kasih atas ucapannya!</div>
-
+<div id="notif">🎉 Terima kasih atas ucapannya!</div>
 
   
 
