@@ -97,7 +97,8 @@
   </div>
 
 <script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbwN9aoSK3ktMZ3hp6hHsUSwdAo2flxBy1Umk6vM75JXgGcs1cX4RZlRzw1gcp3jZI-q/exec"; // ⬅️ Ganti dengan URL dari Google Apps Script kamu
+const scriptURL = "https://script.google.com/macros/s/AKfycbwN9aoSK3ktMZ3hp6hHsUSwdAo2flxBy1Umk6vM75JXgGcs1cX4RZlRzw1gcp3jZI-q/exec"; // ⬅️ Ganti dengan URL Web App dari Google Apps Script
+let lastData = []; // Simpan data lama agar bisa bandingkan dan cegah flicker
 
 // Kirim data ke Google Sheet
 document.getElementById("rsvpForm").addEventListener("submit", async (e) => {
@@ -118,31 +119,40 @@ document.getElementById("rsvpForm").addEventListener("submit", async (e) => {
   await fetch(scriptURL, { method: "POST", body: formData });
 
   document.getElementById("rsvpForm").reset();
-  loadUcapan(); // Refresh daftar
+  loadUcapan(); // Refresh daftar ucapan setelah kirim
 });
 
-// Ambil data dari Sheet
+// Ambil data dari Sheet tanpa flicker
 async function loadUcapan() {
-  const res = await fetch(scriptURL + "?read");
-  const data = await res.json();
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+  try {
+    const res = await fetch(scriptURL + "?read");
+    const data = await res.json();
 
-  data.reverse().forEach(row => {
-    const item = document.createElement("div");
-    item.classList.add("ucapan-item");
-    item.innerHTML = `
-      <strong>${row.nama}</strong> (${row.kehadiran})<br>
-      <p>${row.ucapan}</p>
-      <small>${row.waktu}</small>
-    `;
-    list.appendChild(item);
-  });
+    // Jika tidak ada perubahan data, jangan update DOM (biar tidak kedip)
+    if (JSON.stringify(data) === JSON.stringify(lastData)) return;
+    lastData = data;
+
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.reverse().forEach(row => {
+      const item = document.createElement("div");
+      item.classList.add("ucapan-item");
+      item.innerHTML = `
+        <strong>${row.nama}</strong> (${row.kehadiran})<br>
+        <p>${row.ucapan}</p>
+        <small>${row.waktu}</small>
+      `;
+      list.appendChild(item);
+    });
+  } catch (err) {
+    console.error("Gagal memuat ucapan:", err);
+  }
 }
 
-// Refresh otomatis tiap 10 detik
-setInterval(loadUcapan, 10000);
+// Jalankan pertama kali dan refresh setiap 10 detik
 loadUcapan();
+setInterval(loadUcapan, 10000);
 </script>
 
 </body>
