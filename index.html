@@ -1157,129 +1157,32 @@
   </div>
 </footer>
 
-
-
 <script>
-// ===ANIMASI ===
-  document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ============================================================
+  // === ANIMASI SCROLL ===
+  // ============================================================
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('muncul');
-      } else {
-        entry.target.classList.remove('muncul');
-      }
+      entry.target.classList.toggle('muncul', entry.isIntersecting);
     });
-  }, { threshold: 0.15 }); // makin kecil = lebih cepat muncul
-
+  }, { threshold: 0.15 });
   document.querySelectorAll('.animasi-scroll').forEach(el => observer.observe(el));
-});
 
-  
-document.addEventListener("DOMContentLoaded", () => {
-  // ============================================================
-  // === HASIL UCAPAN (SLIDER BERGERAK + GESER MANUAL) ===
-  // ============================================================
-  let lastCount = 0; // jumlah ucapan terakhir
-
-// === Fungsi Notifikasi ===
-function showNotif(text = "🎉 Terima kasih atas ucapannya!") {
-  const notif = document.getElementById("notif");
-  notif.textContent = text;
-  notif.classList.add("show");
-  setTimeout(() => notif.classList.remove("show"), 3000);
-}
-
-// === KIRIM DATA KE GOOGLE SHEET ===
-document.getElementById("rsvpForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const nama = document.getElementById("nama").value.trim();
-  const ucapan = document.getElementById("ucapan").value.trim();
-  const kehadiran = document.getElementById("kehadiran").value;
-  const waktu = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-
-  if (!nama || !ucapan || !kehadiran) return;
-
-  const formData = new FormData();
-  formData.append("nama", nama);
-  formData.append("ucapan", ucapan);
-  formData.append("kehadiran", kehadiran);
-  formData.append("waktu", waktu);
-
-  await fetch(scriptURL, { method: "POST", body: formData });
-  document.getElementById("rsvpForm").reset();
-  showNotif(); // tampilkan notifikasi
-  loadUcapan(true); // reload penuh setelah kirim
-});
-
-// === AMBIL DATA DARI GOOGLE SHEET TANPA FLICKER ===
-async function loadUcapan(forceFullReload = false) {
-  try {
-    const res = await fetch(scriptURL + "?read");
-    const data = await res.json();
-    const list = document.getElementById("list");
-
-    // Urutkan agar terbaru di atas
-    const reversed = data.slice().reverse();
-
-    // Jika ini pertama kali atau full reload, tampilkan semuanya (terbaru di atas)
-    if (forceFullReload || lastCount === 0) {
-      list.innerHTML = ""; // kosongkan dulu hanya saat awal / reload penuh
-      reversed.forEach(row => {
-        const item = document.createElement("div");
-        item.classList.add("ucapan-item");
-        item.innerHTML = `
-          <strong>${row.nama}</strong> (${row.kehadiran})<br>
-          <p>${row.ucapan}</p>
-          <small>${row.waktu}</small>
-        `;
-        list.appendChild(item);
-      });
-      lastCount = data.length;
-      return;
-    }
-
-    // Kalau jumlah data sama → tidak ada tambahan
-    if (data.length === lastCount) return;
-
-    // Ambil tambahan ucapan baru
-    const newItems = reversed.slice(0, data.length - lastCount);
-    lastCount = data.length;
-
-    newItems.forEach(row => {
-      const item = document.createElement("div");
-      item.classList.add("ucapan-item");
-      item.innerHTML = `
-        <strong>${row.nama}</strong> (${row.kehadiran})<br>
-        <p>${row.ucapan}</p>
-        <small>${row.waktu}</small>
-      `;
-      list.prepend(item); // ucapan baru di paling atas
-    });
-
-  } catch (err) {
-    console.error("Gagal memuat ucapan:", err);
-  }
-}
-
-// Jalankan pertama kali
-loadUcapan(true);
-setInterval(loadUcapan, 8000); // cek tiap 8 detik
 
   // ============================================================
-  // === NAMA TAMU (AMBIL DARI URL) ===
+  // === NAMA TAMU DARI URL ===
   // ============================================================
   const params = new URLSearchParams(window.location.search);
   const nama = params.get("to");
   const namaTamu = document.getElementById("namaTamu");
-  if (nama && namaTamu) {
-    const namaFinal = decodeURIComponent(nama).replace(/\+/g, " ");
-    namaTamu.textContent = namaFinal;
-    namaTamu.classList.remove("hidden");
-  } else if (namaTamu) {
-    namaTamu.classList.add("hidden");
+  if (namaTamu) {
+    if (nama) {
+      namaTamu.textContent = decodeURIComponent(nama).replace(/\+/g, " ");
+      namaTamu.classList.remove("hidden");
+    } else namaTamu.classList.add("hidden");
   }
-
 
   // ============================================================
   // === BUKA UNDANGAN (COVER, MUSIK, MENU) ===
@@ -1297,8 +1200,7 @@ setInterval(loadUcapan, 8000); // cek tiap 8 detik
     if (p !== undefined) p.catch((err) => console.warn("Play ditolak:", err));
   }
   function safePause() {
-    if (!bgMusic) return;
-    try { bgMusic.pause(); } catch (e) {}
+    if (bgMusic) try { bgMusic.pause(); } catch (e) {}
   }
 
   if (openBtn && cover && invitation) {
@@ -1313,100 +1215,136 @@ setInterval(loadUcapan, 8000); // cek tiap 8 detik
         window.scrollTo({ top: 0, behavior: "smooth" });
       }, 600);
     });
-  } else {
-    if (!openBtn) console.warn("openBtn not found");
-    if (!cover) console.warn("cover not found");
-    if (!invitation) console.warn("invitation not found");
   }
 
-  // Pause / resume musik
   document.addEventListener("visibilitychange", () => {
     if (!isOpened) return;
-    if (document.visibilityState === "visible") safePlay();
-    else safePause();
+    document.visibilityState === "visible" ? safePlay() : safePause();
   });
-  window.addEventListener("blur", () => {
-    if (isOpened) safePause();
-  });
-  window.addEventListener("focus", () => {
-    if (isOpened) safePlay();
-  });
-  window.addEventListener("beforeunload", () => {
-    safePause();
-  });
-
+  window.addEventListener("blur", () => isOpened && safePause());
+  window.addEventListener("focus", () => isOpened && safePlay());
+  window.addEventListener("beforeunload", () => safePause());
 
 
   // ============================================================
   // === COUNTDOWN ACARA ===
   // ============================================================
   function countdown() {
-    // ⚠️ Bulan dimulai dari 0 = Januari → 10 = November
     const target = new Date(2025, 10, 10, 8, 0, 0).getTime();
-    const now = Date.now();
-    const diff = target - now;
-
-    const daysEl = document.getElementById("days");
-    const hoursEl = document.getElementById("hours");
-    const minutesEl = document.getElementById("minutes");
-    const secondsEl = document.getElementById("seconds");
-    const wrapper = document.getElementById("countdown");
-
-    if (!daysEl || !hoursEl || !minutesEl || !secondsEl || !wrapper) return;
-
-    if (diff <= 0) {
-      wrapper.innerHTML = "<p>Acara Sedang Berlangsung 🎉</p>";
-      clearInterval(timer);
-      return;
-    }
+    const diff = target - Date.now();
 
     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-    daysEl.textContent = String(d).padStart(2, "0");
-    hoursEl.textContent = String(h).padStart(2, "0");
-    minutesEl.textContent = String(m).padStart(2, "0");
-    secondsEl.textContent = String(s).padStart(2, "0");
+    const el = id => document.getElementById(id);
+    if (diff <= 0) {
+      el("countdown").innerHTML = "<p>Acara Sedang Berlangsung 🎉</p>";
+      clearInterval(timer);
+      return;
+    }
+    el("days").textContent = d.toString().padStart(2, "0");
+    el("hours").textContent = h.toString().padStart(2, "0");
+    el("minutes").textContent = m.toString().padStart(2, "0");
+    el("seconds").textContent = s.toString().padStart(2, "0");
   }
-
   const timer = setInterval(countdown, 1000);
-  countdown(); // panggil langsung sekali biar muncul awal
+  countdown();
+
 
   // ============================================================
-  // === SCROLL HALUS UNTUK MENU ===
+  // === SCROLL HALUS MENU BAWAH ===
   // ============================================================
-  const navLinks = document.querySelectorAll(
-    '#menuNavigasi a[href^="#"], #menuNavigasi a[href^="."]'
-  );
-  navLinks.forEach((link) => {
-    link.addEventListener("click", function (e) {
+  document.querySelectorAll('#menuNavigasi a[href^="#"]').forEach(link => {
+    link.addEventListener("click", e => {
       e.preventDefault();
-      const selector = this.getAttribute("href");
-      const target = document.querySelector(selector);
+      const target = document.querySelector(link.getAttribute("href"));
       if (!target) return;
-
-      const start = window.pageYOffset;
-      const end = target.getBoundingClientRect().top + window.pageYOffset;
-      const duration = 500;
-      const startTime = performance.now();
-
-      function smoothScroll(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const ease =
-          progress < 0.5
-            ? 2 * progress * progress
-            : -1 + (4 - 2 * progress) * progress;
-        window.scrollTo(0, start + (end - start) * ease);
-        if (progress < 1) requestAnimationFrame(smoothScroll);
-      }
-
-      requestAnimationFrame(smoothScroll);
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+
+
+  // ============================================================
+  // === RSVP & UCAPAN GOOGLE SHEET (versi notifikasi + refresh) ===
+  // ============================================================
+  const scriptURL = "https://script.google.com/macros/s/AKfycbwN9aoSK3ktMZ3hp6hHsUSwdAo2flxBy1Umk6vM75JXgGcs1cX4RZlRzw1gcp3jZI-q/exec";
+  let lastCount = 0;
+
+  const notif = document.getElementById("notif");
+  const showNotif = (text = "🎉 Terima kasih atas ucapannya!") => {
+    notif.textContent = text;
+    notif.classList.add("show");
+    setTimeout(() => notif.classList.remove("show"), 3000);
+  };
+
+  const list = document.getElementById("list");
+  const form = document.getElementById("rsvpForm");
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nama = document.getElementById("nama").value.trim();
+      const ucapan = document.getElementById("ucapan").value.trim();
+      const kehadiran = document.getElementById("kehadiran").value;
+      const waktu = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+      if (!nama || !ucapan || !kehadiran) return;
+
+      const formData = new FormData();
+      formData.append("nama", nama);
+      formData.append("ucapan", ucapan);
+      formData.append("kehadiran", kehadiran);
+      formData.append("waktu", waktu);
+
+      await fetch(scriptURL, { method: "POST", body: formData });
+      form.reset();
+      showNotif();
+      loadUcapan(true);
+    });
+  }
+
+  async function loadUcapan(forceFullReload = false) {
+    try {
+      const res = await fetch(scriptURL + "?read");
+      const data = await res.json();
+      const reversed = data.slice().reverse();
+
+      if (forceFullReload || lastCount === 0) {
+        list.innerHTML = "";
+        reversed.forEach(row => {
+          const item = document.createElement("div");
+          item.className = "ucapan-item";
+          item.innerHTML = `<strong>${row.nama}</strong> (${row.kehadiran})<br>
+                            <p>${row.ucapan}</p>
+                            <small>${row.waktu}</small>`;
+          list.appendChild(item);
+        });
+        lastCount = data.length;
+        return;
+      }
+
+      if (data.length === lastCount) return;
+
+      const newItems = reversed.slice(0, data.length - lastCount);
+      lastCount = data.length;
+
+      newItems.forEach(row => {
+        const item = document.createElement("div");
+        item.className = "ucapan-item";
+        item.innerHTML = `<strong>${row.nama}</strong> (${row.kehadiran})<br>
+                          <p>${row.ucapan}</p>
+                          <small>${row.waktu}</small>`;
+        list.prepend(item);
+      });
+    } catch (err) {
+      console.error("Gagal memuat ucapan:", err);
+    }
+  }
+
+  loadUcapan(true);
+  setInterval(loadUcapan, 8000); // auto refresh tiap 8 detik
+
 });
 </script>
-
-
