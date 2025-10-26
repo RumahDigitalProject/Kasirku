@@ -834,49 +834,117 @@
   color:  #f3a302; 
 }
 
-/* === FOOTER BRAND === */
-.footer-wedding {
-  background-color: #ffffff;
-  padding: 70px 65px;
+/* === FOOTER DREAMY === */
+.footer-wedding.dreamy {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #5b0f15 0%, #22070a 100%);
+  color: #fff;
   text-align: center;
-  border-top: 2px solid #e7a5bd;
-  border-top-left-radius: 40px;
-  border-top-right-radius: 40px;
-  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.05);
+  padding: 70px 20px 50px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Efek bokeh bergerak */
+.bokeh-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bokeh {
+  position: absolute;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 80%);
+  border-radius: 50%;
+  animation: moveBokeh 12s infinite ease-in-out;
+}
+
+.bokeh:nth-child(1) {
+  width: 150px; height: 150px;
+  top: 20%; left: 10%;
+  animation-delay: 0s;
+}
+
+.bokeh:nth-child(2) {
+  width: 100px; height: 100px;
+  top: 60%; left: 30%;
+  animation-delay: 2s;
+}
+
+.bokeh:nth-child(3) {
+  width: 180px; height: 180px;
+  top: 30%; right: 10%;
+  animation-delay: 4s;
+}
+
+.bokeh:nth-child(4) {
+  width: 120px; height: 120px;
+  bottom: 10%; left: 50%;
+  animation-delay: 6s;
+}
+
+.bokeh:nth-child(5) {
+  width: 90px; height: 90px;
+  top: 10%; right: 35%;
+  animation-delay: 8s;
+}
+
+@keyframes moveBokeh {
+  0%   { transform: translateY(0) scale(1); opacity: 0.6; }
+  50%  { transform: translateY(-30px) scale(1.2); opacity: 0.9; }
+  100% { transform: translateY(0) scale(1); opacity: 0.6; }
+}
+
+/* Konten di atas bokeh */
+.footer-content {
   position: relative;
   z-index: 2;
 }
 
-.footer-content {
-  font-family: 'Inter', sans-serif;
-  color: #5a4e4d;
-  font-size: 13px;
+.footer-text {
+  font-size: 14px;
+  color: #f8dada;
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
 }
 
-.footer-content p {
-  margin: 4px 0;
+.footer-brand {
+  font-family: 'Great Vibes', cursive;
+  font-size: 30px;
+  color: #ffdca2;
+  text-shadow: 0 0 10px rgba(255, 220, 162, 0.5);
+  margin-bottom: 20px;
 }
 
 .footer-row {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 14px;
+  font-size: 14px;
+  color: #fddede;
 }
 
-.wa-icon-inline img {
-  width: 18px;
-  height: 18px;
-  filter: grayscale(100%);
-  opacity: 0.7;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+.wa-icon-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #25d366;
+  text-decoration: none;
+  transition: transform 0.3s ease, color 0.3s ease;
+  font-weight: 600;
 }
 
-.wa-icon-inline img:hover {
+.wa-icon-inline:hover {
+  color: #1da851;
   transform: scale(1.1);
-  opacity: 1;
 }
+
+.wa-icon-inline i {
+  font-size: 16px;
+}
+
 
 
 .menu-bawah {
@@ -1173,26 +1241,34 @@
 
 
   
-<!-- === BRAND / FOOTER UNDANGAN === -->
-<footer class="footer-wedding">
-  <div class="footer-content">
-    <p>Undangan oleh <strong>Rumah Digital Project</strong></p>
+<!-- === BRAND / FOOTER UNDANGAN (versi dreamy) === -->
+<footer class="footer-wedding dreamy">
+  <div class="bokeh-wrapper">
+    <div class="bokeh"></div>
+    <div class="bokeh"></div>
+    <div class="bokeh"></div>
+    <div class="bokeh"></div>
+    <div class="bokeh"></div>
+  </div>
+
+  <div class="footer-content animasi-scroll" data-anim="up">
+    <p class="footer-text">Dibuat dengan 💖 oleh</p>
+    <h3 class="footer-brand">Rumah Digital Project</h3>
     <div class="footer-row">
-      <span>© 2025</span>
+      <span>© 2025 Semua Hak Dilindungi</span>
       <a 
         class="wa-icon-inline" 
         href="https://wa.me/6285706889273" 
         target="_blank" 
         rel="noopener noreferrer"
+        title="Hubungi via WhatsApp"
       >
-        <img 
-          alt="WhatsApp" 
-          src="https://cdn-icons-png.flaticon.com/512/733/733585.png"
-        />
+        <i class="fa-brands fa-whatsapp"></i> Chat Kami
       </a>
     </div>
   </div>
 </footer>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
